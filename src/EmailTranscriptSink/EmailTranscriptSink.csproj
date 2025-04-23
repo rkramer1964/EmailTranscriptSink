@@ -9,13 +9,14 @@
     <TargetFrameworks>$(TargetFrameworks);netstandard2.0;net6.0;net8.0;net9.0</TargetFrameworks>
     <PackageTags>serilog;smtp;mailkit</PackageTags>
     <PackageIcon>serilog-sink-nuget.png</PackageIcon>
-    <PackageProjectUrl>http://www.github.com/rkramer1964</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/rkramer1964/EmailTranscriptSink</PackageProjectUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <TreatSpecificWarningsAsErrors />
     <PolySharpIncludeRuntimeSupportedAttributes>true</PolySharpIncludeRuntimeSupportedAttributes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RootNamespace>EmailTranscriptSink</RootNamespace>
     <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <RepositoryUrl>https://github.com/rkramer1964/EmailTranscriptSink</RepositoryUrl>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
