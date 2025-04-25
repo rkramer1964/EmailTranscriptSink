@@ -3,11 +3,12 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Configuration;
 using MailKit;
-using System.Net.Mail;
 using System.Globalization;
 using Serilog.Formatting.Display;
 using Microsoft.VisualBasic;
 using Serilog.Debugging;
+using MailKit.Net.Smtp;
+using MimeKit;
 
 namespace EmailTranscriptSink;
 
@@ -20,7 +21,7 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
     private readonly string _outputTemplate;
     private readonly MessageTemplateTextFormatter _formatter;
     private readonly IFormatProvider _formatProvider;
-    private readonly Func<SmtpClient, MailMessage, bool> _configAndSend;
+    private readonly Func<SmtpClient, MimeMessage, bool> _configAndSend;
     private List<string> _body = new List<string>();
 
 /// <summary>
@@ -36,7 +37,7 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
 /// Defaults to "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
 /// </param>
   public EmailTranscriptSink(
-    Func<SmtpClient, MailMessage, bool> configAndSend,
+    Func<SmtpClient, MimeMessage, bool> configAndSend,
     IFormatProvider formatProvider = null,
     string outputTemplate = null)
     {
@@ -61,12 +62,14 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
 /// </summary>
   public void SendLog()
   {
+    var builder = new BodyBuilder() {
+        TextBody = string.Join("\r\n", _body)
+      };
+
     var client = new SmtpClient();
-    MailMessage msg = new MailMessage()
+    MimeMessage msg = new MimeMessage()
     {
-        Body = string.Join("\r\n", _body),
-        BodyEncoding = System.Text.UTF8Encoding.UTF8,
-        IsBodyHtml = false,
+        Body = builder.ToMessageBody(),
         Subject = "Log Transcript"
     };
 
@@ -116,7 +119,7 @@ public static class EmailTranscriptSinkExtensions
 /// </param>
     public static LoggerConfiguration EmailTranscript(
                 this LoggerSinkConfiguration loggerConfiguration,
-                Func<SmtpClient, MailMessage, bool> configureAndSend,
+                Func<SmtpClient, MimeMessage, bool> configureAndSend,
                 IFormatProvider formatProvider = null,
                 string outputTemplate = null)
     {
