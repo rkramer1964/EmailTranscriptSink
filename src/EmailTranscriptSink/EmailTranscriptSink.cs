@@ -9,6 +9,7 @@ using Microsoft.VisualBasic;
 using Serilog.Debugging;
 using MailKit.Net.Smtp;
 using MimeKit;
+using MailKit.Security;
 
 namespace EmailTranscriptSink;
 
@@ -21,7 +22,7 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
     private readonly string _outputTemplate;
     private readonly MessageTemplateTextFormatter _formatter;
     private readonly IFormatProvider _formatProvider;
-    private readonly Func<SmtpClient, MimeMessage, bool> _configAndSend;
+    private readonly Func<SmtpClient, MimeMessage, ConnectionSettings, bool> _configAndSend;
     private List<string> _body = new List<string>();
 
 /// <summary>
@@ -37,7 +38,7 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
 /// Defaults to "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}"
 /// </param>
   public EmailTranscriptSink(
-    Func<SmtpClient, MimeMessage, bool> configAndSend,
+    Func<SmtpClient, MimeMessage, ConnectionSettings, bool> configAndSend,
     IFormatProvider formatProvider = null,
     string outputTemplate = null)
     {
@@ -66,6 +67,13 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
         TextBody = string.Join("\r\n", _body)
       };
 
+    var connectionSettings = new ConnectionSettings()
+    {
+      Host = "",
+      Port = 25,
+      ConnectionSecurity = SecureSocketOptions.Auto
+    };
+
     var client = new SmtpClient();
     MimeMessage msg = new MimeMessage()
     {
@@ -73,10 +81,11 @@ public class EmailTranscriptSink : ILogEventSink, IDisposable
         Subject = "Log Transcript"
     };
 
-    if (_configAndSend(client, msg))
+    if (_configAndSend(client, msg, connectionSettings))
     {
       try
       {
+        client.Connect(connectionSettings.Host, connectionSettings.Port, connectionSettings.ConnectionSecurity);
         client.Send(msg);
         _body = new List<string>();
       }
@@ -119,11 +128,30 @@ public static class EmailTranscriptSinkExtensions
 /// </param>
     public static LoggerConfiguration EmailTranscript(
                 this LoggerSinkConfiguration loggerConfiguration,
-                Func<SmtpClient, MimeMessage, bool> configureAndSend,
+                Func<SmtpClient, MimeMessage, ConnectionSettings, bool> configureAndSend,
                 IFormatProvider formatProvider = null,
                 string outputTemplate = null)
     {
         return loggerConfiguration.Sink(new EmailTranscriptSink(configureAndSend, formatProvider, outputTemplate));
     }
+
 }
 
+    /// <summary>
+    /// 
+    /// </summary>
+  public class ConnectionSettings 
+  {
+    /// <summary>
+    /// 
+    /// </summary>
+    public string Host {get; set; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public int Port { get;set; }
+    /// <summary>
+    /// 
+    /// </summary>
+    public SecureSocketOptions ConnectionSecurity { get; set; }
+  }
