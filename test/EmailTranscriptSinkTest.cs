@@ -42,5 +42,6 @@ public class EmailTranscriptSinkTest
         Assert.Contains("WRN", body);
         Assert.Contains("ERR", body);
         Assert.True(subject == "Log Transcript");
+        
     }
 }
