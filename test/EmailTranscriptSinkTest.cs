@@ -26,7 +26,7 @@ public class EmailTranscriptSinkTest
     {
         string body = "";
         string subject = "";
-        Log.Logger = new LoggerConfiguration().WriteTo.EmailTranscript((client, msg) =>
+        Log.Logger = new LoggerConfiguration().WriteTo.EmailTranscript((client, msg, connectionSettings) =>
         {
             body = msg.GetTextBody(MimeKit.Text.TextFormat.Plain);
             subject = msg.Subject;
